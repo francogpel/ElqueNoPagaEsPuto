@@ -11,7 +11,8 @@ const cors     = require("cors");
 const fs       = require("fs");
 const path     = require("path");
 const fetch    = require("node-fetch");
-const admin    = require("firebase-admin");
+const admin = require("firebase-admin");
+const { getFirestore } = require("firebase-admin/firestore");
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 
 const app = express();
@@ -35,8 +36,14 @@ try {
   // Lo generás en: Firebase Console → Configuración → Cuentas de servicio
   const raw          = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "", "base64").toString();
   const serviceAccount = JSON.parse(raw);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  console.log("✅ Firebase Admin inicializado");
+  admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const firestore = getFirestore();
+
+console.log("✅ Firebase Admin inicializado");
+console.log("✅ Firestore conectado");
 } catch {
   // En desarrollo local sin Firebase, el servidor igual arranca pero sin auth
   console.warn("⚠️  Firebase Admin no configurado — rutas de admin sin protección (solo para desarrollo)");
