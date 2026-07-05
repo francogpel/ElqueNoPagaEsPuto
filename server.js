@@ -228,7 +228,7 @@ app.get("/api/rooms", requireAdmin, (req, res) => {
 });
 
 // Crear sala
-app.post("/api/rooms", requireAdmin, (req, res) => {
+app.post("/api/rooms", requireAdmin, async (req, res) => {
   const { title, total, participants } = req.body;
   if (!title || !total || !Array.isArray(participants) || participants.length < 2)
     return res.status(400).json({ error: "Datos incompletos" });
