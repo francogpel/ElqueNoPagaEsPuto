@@ -15,6 +15,8 @@ const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 
+const store = require("./services/firestore");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -74,7 +76,7 @@ function loadDB() {
 }
 function saveDB(data) { fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2)); }
 let db = loadDB();
-const makeRoomId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const store = require("./services/firestore");
 
 // ─── Middleware: verificar token de Firebase ──────────────────────────────────
 // Todas las rutas de admin pasan por acá para verificar que el usuario
@@ -252,8 +254,11 @@ app.post("/api/rooms", requireAdmin, (req, res) => {
       paidAt:    null,
     })),
   };
-  db.rooms[id] = room;
-  saveDB(db);
+  await store.createRoom(room);
+
+// Compatibilidad temporal con db.json
+db.rooms[id] = room;
+saveDB(db);
 
   const { mpAccessToken: _, ...safeRoom } = room;
   res.json({ ...safeRoom, shareUrl: `${PUBLIC_URL}/?room=${id}` });
