@@ -159,7 +159,7 @@ function startApp() {
     if (mpConnected) {
       history.replaceState({}, "", "/");
     }
-    S.screen = "setup";
+    S.screen = "home";
     if (S.user) loadAdminData();
   }
   render();
@@ -187,7 +187,7 @@ async function signInGoogle() {
   try {
     await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
     await loadAdminData();
-    S.screen = "setup"; render();
+    S.screen = "home"; render();
   } catch(e) { setAuthErr(authErrMsg(e.code)); }
 }
 async function signInEmail(isSignup) {
@@ -199,7 +199,7 @@ async function signInEmail(isSignup) {
     if (isSignup) await firebase.auth().createUserWithEmailAndPassword(email, pass);
     else          await firebase.auth().signInWithEmailAndPassword(email, pass);
     await loadAdminData();
-    S.screen = "setup"; render();
+    S.screen = "home"; render();
   } catch(e) { setAuthErr(authErrMsg(e.code)); }
 }
 function signOut() {
@@ -294,6 +294,7 @@ function buildWheel(participants, myId, isAdmin) {
 function render() {
   const app = document.getElementById("app");
   if (S.screen === "login")     return renderLogin(app);
+  if (S.screen === "home")      return renderHome(app);
   if (S.screen === "setup")     return renderSetup(app);
   if (S.screen === "mis-salas") return renderMisSalas(app);
   if (S.screen === "created")   return renderCreated(app);
@@ -344,6 +345,51 @@ function userPillHTML() {
 }
 
 // ── SETUP ─────────────────────────────────────────────────────────────────────
+function renderHome(app) {
+
+    const hasRooms = S.rooms.length > 0;
+
+    app.innerHTML = `
+
+        ${userPillHTML()}
+
+        <div style="padding-top:30px;text-align:center">
+
+            <img
+                src="./paga-raton-logo.jpeg"
+                style="width:90px;margin-bottom:16px">
+
+            <h1 style="font-size:28px;margin-bottom:36px">
+                BIENVENIDO
+            </h1>
+
+            <div class="gap18">
+
+                <button
+                    class="btn-primary"
+                    onclick="S.screen='setup';render()">
+
+                    ➕ Crear sala
+
+                </button>
+
+                <button
+                    class="btn-ghost"
+                    ${hasRooms
+                        ? `onclick="goMisSalas()"`
+                        : `disabled style="opacity:.45;cursor:default"`}>
+
+                    📋 Ver salas
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
 function renderSetup(app) {
   const connected = S.mpStatus?.connected;
   const nickname  = S.mpStatus?.nickname || "";

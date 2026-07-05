@@ -76,7 +76,6 @@ function loadDB() {
 }
 function saveDB(data) { fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2)); }
 let db = loadDB();
-const store = require("./services/firestore");
 
 // ─── Middleware: verificar token de Firebase ──────────────────────────────────
 // Todas las rutas de admin pasan por acá para verificar que el usuario
