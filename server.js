@@ -296,8 +296,8 @@ app.post("/api/rooms/:roomId/mark-paid/:participantId", requireAdmin, (req, res)
 // Si el admin conectó su cuenta, el pago va a SU cuenta directamente.
 // ═══════════════════════════════════════════════════════════════════════════════
 app.post("/api/rooms/:roomId/pay/:participantId", async (req, res) => {
-  const room = db.rooms[req.params.roomId];
-  if (!room) return res.status(404).json({ error: "Sala no encontrada" });
+ const room = await store.getRoom(roomId);
+if (!room) return;
 
   const p = room.participants.find(x => x.id === req.params.participantId);
   if (!p)       return res.status(404).json({ error: "Participante no encontrado" });
@@ -362,17 +362,22 @@ app.post("/api/webhook", async (req, res) => {
     if (info.status !== "approved") return;
 
     const [roomId, participantId] = (info.external_reference || "").split(":");
-    const room = db.rooms[roomId];
+const room = await store.getRoom(roomId);
     if (!room) return;
 
     const p = room.participants.find(x => x.id === participantId);
-    if (p && !p.paid) {
+    
+    if (!p || p.paid) return; {
       p.paid      = true;
       p.paymentId = String(paymentId);
       p.paidAt    = new Date().toISOString();
-      saveDB(db);
+      
+      await store.updateRoom(roomId, {
+  participants: room.participants
+});
       console.log(`✅ Pago confirmado: ${room.title} — ${p.name}`);
     }
+    
   } catch (err) {
     console.error("Error en webhook MP:", err);
   }
