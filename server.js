@@ -113,11 +113,14 @@ app.get("/api/config", (req, res) => {
 });
 
 // Obtener sala (público — los participantes lo usan sin autenticarse)
-app.get("/api/rooms/:id", (req, res) => {
-  const room = db.rooms[req.params.id];
-  if (!room) return res.status(404).json({ error: "Sala no encontrada" });
+app.get("/api/rooms/:id", async (req, res) => {
+  const room = await store.getRoom(req.params.id);
+
+  if (!room) 
+    return res.status(404).json({ error: "Sala no encontrada" });
   // No enviamos el mpAccessToken al cliente por seguridad
   const { mpAccessToken, ...safeRoom } = room;
+  
   res.json(safeRoom);
 });
 
@@ -295,9 +298,10 @@ app.post("/api/rooms/:roomId/mark-paid/:participantId", requireAdmin, (req, res)
 // Crea una preferencia de pago y devuelve el link de checkout.
 // Si el admin conectó su cuenta, el pago va a SU cuenta directamente.
 // ═══════════════════════════════════════════════════════════════════════════════
-app.post("/api/rooms/:roomId/pay/:participantId", async (req, res) => {
- const room = await store.getRoom(roomId);
-if (!room) return;
+const room = await store.getRoom(req.params.roomId);
+
+if (!room) {
+  return res.status(404).json({ error: "Sala no encontrada" });
 
   const p = room.participants.find(x => x.id === req.params.participantId);
   if (!p)       return res.status(404).json({ error: "Participante no encontrado" });
@@ -339,7 +343,7 @@ if (!room) return;
     console.error("Error creando preferencia MP:", err);
     res.status(500).json({ error: "No se pudo generar el link de pago" });
   }
-});
+};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLOQUE 7: WEBHOOK DE MERCADO PAGO
@@ -365,9 +369,9 @@ app.post("/api/webhook", async (req, res) => {
 const room = await store.getRoom(roomId);
     if (!room) return;
 
-    const p = room.participants.find(x => x.id === participantId);
+    const p = room.participants.find(x => x.id === participantId); {
     
-    if (!p || p.paid) return; {
+    if (!p || p.paid) return; 
       p.paid      = true;
       p.paymentId = String(paymentId);
       p.paidAt    = new Date().toISOString();
@@ -377,7 +381,7 @@ const room = await store.getRoom(roomId);
 });
       console.log(`✅ Pago confirmado: ${room.title} — ${p.name}`);
     }
-    
+
   } catch (err) {
     console.error("Error en webhook MP:", err);
   }
