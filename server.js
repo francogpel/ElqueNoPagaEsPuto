@@ -42,7 +42,6 @@ try {
   credential: admin.credential.cert(serviceAccount)
 });
 
-const firestore = getFirestore();
 
 console.log("✅ Firebase Admin inicializado");
 console.log("✅ Firestore conectado");
@@ -76,6 +75,9 @@ function loadDB() {
 }
 function saveDB(data) { fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2)); }
 let db = loadDB();
+
+const makeRoomId = () =>
+  Math.random().toString(36).slice(2, 8).toUpperCase();
 
 // ─── Middleware: verificar token de Firebase ──────────────────────────────────
 // Todas las rutas de admin pasan por acá para verificar que el usuario
