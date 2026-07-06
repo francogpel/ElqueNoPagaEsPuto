@@ -15,7 +15,6 @@ const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 
-const store = require("./services/firestore");
 
 const app = express();
 app.use(cors());
@@ -49,6 +48,8 @@ console.log("✅ Firestore conectado");
   // En desarrollo local sin Firebase, el servidor igual arranca pero sin auth
   console.warn("⚠️  Firebase Admin no configurado — rutas de admin sin protección (solo para desarrollo)");
 }
+
+const store = require("./services/firestore");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BLOQUE 2: MERCADO PAGO
