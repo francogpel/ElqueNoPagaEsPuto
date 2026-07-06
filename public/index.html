@@ -115,7 +115,8 @@ const S = {
   animTotal: 0,
   polling:   null,
   pendingMarkId: null,
-  mpStatus: null,       // { connected, nickname }
+  mpStatus: null, 
+  showCreateForm: false,      // { connected, nickname }
 };
 
 // Detectar parámetros de URL
@@ -159,8 +160,8 @@ function startApp() {
     if (mpConnected) {
       history.replaceState({}, "", "/");
     }
-    S.screen = "home";
-    if (S.user) loadAdminData();
+    S.screen = "setup";
+S.showCreateForm = false;
   }
   render();
 }
@@ -363,25 +364,25 @@ function renderHome(app) {
                 BIENVENIDO
             </h1>
 
+            <p class="sub" style="margin-bottom:30px">
+            ¿Qué querés hacer?
+            </p>
+
             <div class="gap18">
 
                 <button
-                    class="btn-primary"
-                    onclick="S.screen='setup';render()">
-
-                    ➕ Crear sala
-
-                </button>
+class="btn-primary"
+onclick="S.showCreateForm=true;render()">
+➕ Crear sala
+</button>
 
                 <button
-                    class="btn-ghost"
-                    ${hasRooms
-                        ? `onclick="goMisSalas()"`
-                        : `disabled style="opacity:.45;cursor:default"`}>
-
-                    📋 Ver salas
-
-                </button>
+class="btn-ghost"
+${hasRooms ? "" : "disabled"}
+style="${hasRooms?"":"opacity:.35;cursor:not-allowed"}"
+onclick="${hasRooms?"goMisSalas()":""}">
+📋 Ver salas
+</button>
 
             </div>
 
@@ -390,32 +391,41 @@ function renderHome(app) {
     `;
 }
 
+if(!S.showCreateForm){
+    return;
+}
+
 function renderSetup(app) {
   const connected = S.mpStatus?.connected;
+  const hasRooms = S.rooms.length > 0;
   const nickname  = S.mpStatus?.nickname || "";
   const openCount   = S.rooms.filter(r=>r.participants.some(p=>!p.paid)).length;
   const closedCount = S.rooms.filter(r=>r.participants.every(p=>p.paid)).length;
 
   app.innerHTML = `
-    ${userPillHTML()}
-    ${S.rooms.length > 0 ? `
-    <button onclick="goMisSalas()" class="room-card" style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
-      <div style="width:36px;height:36px;border-radius:10px;background:#252529;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📋</div>
-      <div style="flex:1;text-align:left">
-        <p style="font-size:14px;font-weight:600;margin:0 0 2px;color:#F2F0EB">Mis salas</p>
-        <p class="sub" style="font-size:12px;margin:0">
-          ${openCount>0?`<span class="accent">${openCount} abierta${openCount!==1?"s":""}</span>`:""}
-          ${openCount>0&&closedCount>0?`<span style="color:#48484D"> · </span>`:""}
-          ${closedCount>0?`<span class="green">${closedCount} cerrada${closedCount!==1?"s":""}</span>`:""}
-        </p>
-      </div>
-      <span style="color:#48484D;font-size:18px">→</span>
-    </button>` : ""}
+    
 
-    <div style="margin-bottom:20px">
-      <p class="label">Nuevo gasto compartido</p>
-      <h1 style="font-size:24px;font-weight:700">Configurá la sala</h1>
-    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+
+<button
+class="btn-back"
+onclick="S.screen='home';render()">
+
+← Inicio
+
+</button>
+
+<div>
+
+<p class="label">Nueva sala</p>
+
+<h1 style="font-size:24px;font-weight:700">
+Configurá la sala
+</h1>
+
+</div>
+
+</div>
 
     <div class="gap18">
       <!-- CONECTAR MERCADO PAGO -->
@@ -621,10 +631,24 @@ function renderCreated(app){
       <div><p class="mp-color" style="font-size:11px;font-weight:700;margin:0 0 2px;text-transform:uppercase;letter-spacing:.5px">Mercado Pago conectado</p><p class="sub" style="font-size:13px;margin:0">${r.mpAlias}</p></div>
     </div>`:""}
     <div class="gap10">
-      <button class="btn-primary" onclick="goAdminRoom()">Ver sala como admin →</button>
-      <button class="btn-ghost" onclick="simParticipant()">Simular vista de participante</button>
-      <button onclick="S.screen='setup';render()" style="background:none;border:none;color:#48484D;font-size:13px;padding:8px;cursor:pointer">+ Crear otra sala</button>
-    </div>`;
+
+<button
+class="btn-primary"
+onclick="goAdminRoom()">
+
+Ver sala →
+
+</button>
+
+<button
+class="btn-ghost"
+onclick="S.screen='home';render()">
+
+Volver al inicio
+
+</button>
+
+</div>`;
 }
 function copyLink(){
   navigator.clipboard.writeText(S.shareUrl).catch(()=>{});
@@ -632,7 +656,7 @@ function copyLink(){
   if(b){b.textContent="✓ Copiado";b.className="copy-btn done";setTimeout(()=>{b.textContent="Copiar";b.className="copy-btn";},2000);}
 }
 function goAdminRoom(){S.screen="adminRoom";startPolling();render();}
-function simParticipant(){S.screen="join";render();}
+
 
 // ── JOIN ──────────────────────────────────────────────────────────────────────
 async function renderJoin(app){
